@@ -8,6 +8,7 @@ if not RssStatus.query.filter(RssStatus.url == url).first():
     
     print 'rss data is not in database. create data'
     request = urllib2.Request(url)
+    request.add_header("Accept", "text/xml")
     f = urllib2.urlopen(request)
     rss_status=RssStatus(url, f.info().get('Last-Modified'))
     db_session.add(rss_status)

@@ -17,7 +17,9 @@ class RssStatus(Base):
 
     def __init__(self, url, last_modified):
         self.url = url
-        self.last_modifeid = last_modified
+        print url
+        self.last_modified = last_modified
+        print last_modified
 
 
 def init_db():

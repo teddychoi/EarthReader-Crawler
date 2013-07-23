@@ -1,3 +1,5 @@
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
 import urllib2
 import sys
 import re
@@ -17,6 +19,5 @@ def get_rss_url(html):
         match_obj = re.search("(href=\")(http://[^\"]+)", url)
         print match_obj.group(2)
 
-    
 html = get_html(sys.argv[1])
 get_rss_url(html)
