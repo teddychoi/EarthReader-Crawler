@@ -14,7 +14,7 @@ def get_html(url):
 
 
 def get_rss_url(html):
-    rss_url_list = re.findall("link.+type=\"application/rss\+xml\"[^>]+", html)
+    rss_url_list = re.findall("link.+?type=\"application/rss\+xml\"[^>]+", html)
     for url in rss_url_list:
         match_obj = re.search("(href=\")(http://[^\"]+)", url)
         print match_obj.group(2)
