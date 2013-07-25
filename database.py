@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
+import urllib2
 import argparse
 
 
@@ -46,33 +47,35 @@ def add_rss_data(url):
         db_session.commit()
         print 'success'
 
-def check_rss_updated(url):
+def is_feed_updated(url):
     rss_data = RssStatus.query.filter(RssStatus.url == url).first()
 
-    if not rss_data:
-        print 'rss data is not in database'
+    if not rss_data.last_modified:
+
+        return True
 
     else:
-        if not rss_data.last_modified:
-
-            print "no 'Last-Modified' data in database"
-    
-        else:
        
-            request = urllib2.Request(url)
-            request.add_header("Accept","text/xml")
-            f = urllib2.urlopen(request)
-            current_last_modified = f.info().get('Last-Modified')
+        request = urllib2.Request(url)
+        request.add_header("Accept","text/xml")
+        f = urllib2.urlopen(request)
+        current_last_modified = f.info().get('Last-Modified')
+    
+        if rss_data.last_modified == current_last_modified:
         
-            if rss_data.last_modified == current_last_modified:
-        
-                print 'not updated'
-        
-            else:
+            return False
+
+        else:
             
-                print 'updated'
-                print "updating 'Last-Modified' data"
-                rss_data.last_modified = current_last_modified
-                db_session.commit()
-                print 'success'
-     
+            return True
+
+
+def update_last_modified(url):
+    
+    rss_data = RssStatus.query.filter(RssStatus.url == url).first()
+    request = urllib2.Request(url)
+    request.add_header("Accept","text/xml")
+    f = urllib2.urlopen(request)
+    current_last_modified = f.info().get('Last-Modified')
+    rss_data.last_modified = current_last_modified
+    db_session.commit()
