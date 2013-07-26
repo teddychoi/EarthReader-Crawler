@@ -11,16 +11,39 @@ db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind
 Base = declarative_base()
 Base.query = db_session.query_property()
 
-class RssStatus(Base):
-    __tablename__ = 'rss_status'
+class RssData(Base):
+    __tablename__ = 'rss_data'
 
     id = Column(Integer, primary_key=True)
     url = Column(String)
     last_modified = Column(String)
 
-    def __init__(self, url, last_modified):
+
+    def __init__(self, url):
         self.url = url
-        self.last_modified = last_modified
+
+
+    def is_feed_updated(self, current_last_modified):
+
+        if not self.last_modified:
+
+            return True
+
+        else:
+       
+            if self.last_modified == current_last_modified:
+        
+                return False
+
+            else:
+            
+                return True
+
+
+    def update_last_modified(self, current_last_modified):
+    
+        self.last_modified = current_last_modified
+        db_session.commit()
 
 
 def init_db():
@@ -30,52 +53,14 @@ def init_db():
 
 def is_in_database(url):
     
-    return (True if RssStatus.query.filter(RssStatus.url == url).first() 
+    return (True if RssData.query.filter(RssData.url == url).first() 
                  else False)
     
 
-
 def add_rss_data(url):
-    if not RssStatus.query.filter(RssStatus.url == url).first():
         
-        print 'rss data is not in database. create data'
-        request = urllib2.Request(url)
-        request.add_header("Accept", "text/xml")
-        f = urllib2.urlopen(request)
-        rss_status=RssStatus(url, f.info().get('Last-Modified'))
-        db_session.add(rss_status)
-        db_session.commit()
-        print 'success'
-
-def is_feed_updated(url):
-    rss_data = RssStatus.query.filter(RssStatus.url == url).first()
-
-    if not rss_data.last_modified:
-
-        return True
-
-    else:
-       
-        request = urllib2.Request(url)
-        request.add_header("Accept","text/xml")
-        f = urllib2.urlopen(request)
-        current_last_modified = f.info().get('Last-Modified')
-    
-        if rss_data.last_modified == current_last_modified:
-        
-            return False
-
-        else:
-            
-            return True
-
-
-def update_last_modified(url):
-    
-    rss_data = RssStatus.query.filter(RssStatus.url == url).first()
-    request = urllib2.Request(url)
-    request.add_header("Accept","text/xml")
-    f = urllib2.urlopen(request)
-    current_last_modified = f.info().get('Last-Modified')
-    rss_data.last_modified = current_last_modified
+    print 'rss data is not in database. create data'
+    rss_data=RssData(url, None)
+    db_session.add(rss_data)
     db_session.commit()
+    print 'success'
